@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { AdMob, RewardAdOptions, AdMobRewardItem } from '@capacitor-community/admob';
+import { AdMob, RewardAdOptions, AdMobRewardItem, RewardAdPluginEvents } from '@capacitor-community/admob';
 import { useToast } from "../components/ui/Toast";
 
 interface AdContextType {
@@ -22,13 +22,14 @@ export function AdProvider({ children }: { children: ReactNode }) {
   const [onAdCancel, setOnAdCancel] = useState<(() => void) | null>(null);
 
   useEffect(() => {
+    let dismissListener: any;
     const initAdMob = async () => {
       try {
         await AdMob.initialize({});
         setIsInitialized(true);
         loadAd();
         
-        AdMob.addListener('onRewardedVideoAdDismissed', () => {
+        dismissListener = await AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
           loadAd(); // Preload next ad
         });
       } catch (e) {
@@ -38,7 +39,9 @@ export function AdProvider({ children }: { children: ReactNode }) {
     initAdMob();
     
     return () => {
-      AdMob.removeAllListeners().catch(() => {});
+      if (dismissListener) {
+        dismissListener.remove();
+      }
     };
   }, []);
 
@@ -57,13 +60,13 @@ export function AdProvider({ children }: { children: ReactNode }) {
     try {
       let rewarded = false;
       
-      const rewardListener = AdMob.addListener('onRewardedVideoAdReward', (rewardItem: AdMobRewardItem) => {
+      const rewardListener = await AdMob.addListener(RewardAdPluginEvents.Rewarded, (rewardItem: AdMobRewardItem) => {
         rewarded = true;
         onComplete();
         rewardListener.remove();
       });
 
-      const dismissListener = AdMob.addListener('onRewardedVideoAdDismissed', () => {
+      const dismissListener = await AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
         if (!rewarded && onCancel) {
           onCancel();
         }

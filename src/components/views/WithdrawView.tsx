@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../ui/Toast";
 import { Wallet, ArrowUpRight, History, CreditCard, Landmark, CheckCircle2, Clock, ArrowLeft } from "lucide-react";
