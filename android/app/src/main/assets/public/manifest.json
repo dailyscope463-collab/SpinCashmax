@@ -1,0 +1,20 @@
+{
+  "name": "Spin & Earn",
+  "short_name": "SpinEarn",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#120c18",
+  "theme_color": "#8b5cf6",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=spin&backgroundColor=8b5cf6",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=spin&backgroundColor=8b5cf6",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
