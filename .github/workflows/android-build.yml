@@ -21,7 +21,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
-        java-version: '17'
+        java-version: '21'
 
     - name: Install dependencies
       run: npm install
@@ -35,7 +35,7 @@ jobs:
     - name: Build APK
       run: |
         cd android
-        gradle wrapper --gradle-version 8.2.1
+        gradle wrapper --gradle-version 8.14.3
         chmod +x gradlew
         ./gradlew assembleDebug
 
