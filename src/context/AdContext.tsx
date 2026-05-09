@@ -23,12 +23,26 @@ export function AdProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let dismissListener: any;
+    let loadListener: any;
+    let failListener: any;
+
     const initAdMob = async () => {
       try {
-        await AdMob.initialize({});
+        await AdMob.initialize({
+          initializeForTesting: true
+        });
         setIsInitialized(true);
         loadAd();
         
+        loadListener = await AdMob.addListener(RewardAdPluginEvents.Loaded, () => {
+          console.log("Ad loaded successfully");
+        });
+
+        failListener = await AdMob.addListener(RewardAdPluginEvents.FailedToLoad, (err) => {
+          console.error('Failed to load ad', err);
+          setTimeout(loadAd, 10000);
+        });
+
         dismissListener = await AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
           loadAd(); // Preload next ad
         });
@@ -39,9 +53,9 @@ export function AdProvider({ children }: { children: ReactNode }) {
     initAdMob();
     
     return () => {
-      if (dismissListener) {
-        dismissListener.remove();
-      }
+      if (dismissListener) dismissListener.remove();
+      if (loadListener) loadListener.remove();
+      if (failListener) failListener.remove();
     };
   }, []);
 
@@ -49,6 +63,7 @@ export function AdProvider({ children }: { children: ReactNode }) {
     try {
       const options: RewardAdOptions = {
         adId: 'ca-app-pub-9352983809793592/7213743820',
+        isTesting: true,
       };
       await AdMob.prepareRewardVideoAd(options);
     } catch (e) {
@@ -73,7 +88,11 @@ export function AdProvider({ children }: { children: ReactNode }) {
         dismissListener.remove();
       });
 
-      await AdMob.showRewardVideoAd();
+      await AdMob.showRewardVideoAd().catch(async () => {
+         // If it fails to show (e.g. not prepared), try preparing it
+         await loadAd();
+         return AdMob.showRewardVideoAd();
+      });
     } catch (e) {
       console.error("AdMob failed, falling back to simulated ad for web", e);
       setOnAdComplete(() => onComplete);
